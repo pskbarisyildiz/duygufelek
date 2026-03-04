@@ -27,13 +27,15 @@
 
         body {
             background-color: transparent;
-            /* Arka planın görünmesi için şeffaf yapıldı */
             color: var(--text-color);
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            padding: 20px;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            /* Embed içinde kaydırma çubuğu çıkmasını engeller */
         }
 
         .main-container {
