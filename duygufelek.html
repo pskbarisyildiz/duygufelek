@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İnteraktif Duygu Çarkı (Plutchik Modeli)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f4f7f6;
+            --text-color: #ffffff;
+            --panel-bg: transparent;
+            --primary-color: #3498db;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: transparent;
+            /* Arka planın görünmesi için şeffaf yapıldı */
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .main-container {
+            display: flex;
+            flex-direction: row;
+            background: transparent;
+            overflow: hidden;
+            width: 100%;
+            height: 100vh;
+        }
+
+        /* LEFT SIDE: SVG WHEEL */
+        .plutchik-zone {
+            flex: 1.3;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .wheel-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            z-index: 1;
+            transform: scale(0.95) translate(30px, -20px);
+            /* Ölçek küçültüldü, kaydırma miktarı azaltıldı */
+            transform-origin: center center;
+        }
+
+        svg#Layer_1 {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.05));
+            position: relative;
+            z-index: 2;
+            /* SVG Alt Katmanda */
+        }
+
+        /* Orijinal İngilizce metinleri ve gereksiz lekeleri gizleme */
+        .central-letter,
+        .intermediate-letter,
+        .sixseconds-letter,
+        .intermediate-word-bounding-box,
+        .cls-31,
+        .cls-32,
+        .cls-34 {
+            display: none !important;
+        }
+
+        /* Duygu Renkleri */
+        .joy-color,
+        .joy {
+            fill: #FFD54F;
+        }
+
+        .ecstasy-color,
+        .ecstasy {
+            fill: #FFB300;
+        }
+
+        .serenity-color,
+        .serenity {
+            fill: #FFE082;
+        }
+
+        .trust-color,
+        .trust {
+            fill: #AED581;
+        }
+
+        .admiration-color,
+        .admiration {
+            fill: #7CB342;
+        }
+
+        .acceptance-color,
+        .acceptance {
+            fill: #C5E1A5;
+        }
+
+        .fear-color,
+        .fear {
+            fill: #81C784;
+        }
+
+        .terror-color,
+        .terror {
+            fill: #43A047;
+        }
+
+        .apprehension-color,
+        .apprehension {
+            fill: #A5D6A7;
+        }
+
+        .surprise-color,
+        .surprise {
+            fill: #4FC3F7;
+        }
+
+        .amazement-color,
+        .amazement {
+            fill: #039BE5;
+        }
+
+        .distraction-color,
+        .distraction {
+            fill: #81D4FA;
+        }
+
+        .sadness-color,
+        .sadness {
+            fill: #7986CB;
+        }
+
+        .grief-color,
+        .grief {
+            fill: #3949AB;
+        }
+
+        .pensiveness-color,
+        .pensiveness {
+            fill: #9FA8DA;
+        }
+
+        .disgust-color,
+        .disgust {
+            fill: #BA68C8;
+        }
+
+        .loathing-color,
+        .loathing {
+            fill: #8E24AA;
+        }
+
+        .boredom-color,
+        .boredom {
+            fill: #CE93D8;
+        }
+
+        .anger-color,
+        .anger {
+            fill: #E57373;
+        }
+
+        .rage-color,
+        .rage {
+            fill: #E53935;
+        }
+
+        .annoyance-color,
+        .annoyance {
+            fill: #EF9A9A;
+        }
+
+        .anticipation-color,
+        .anticipation {
+            fill: #FFB74D;
+        }
+
+        .vigilance-color,
+        .vigilance {
+            fill: #FB8C00;
+        }
+
+        .interest-color,
+        .interest {
+            fill: #FFCC80;
+        }
+
+        .cone {
+            fill: #E0E0E0;
+            opacity: 0.6;
+            transition: opacity 0.3s;
+        }
+
+        .petal-shape {
+            transition: filter 0.3s, opacity 0.3s;
+            cursor: pointer;
+        }
+
+        .petal-shape:hover,
+        .cone:hover {
+            filter: brightness(0.9);
+        }
+
+        /* Türkçe Etiketler - GÜNCELLENDİ (Tıklanabilirlik artırıldı) */
+        .emotion-label {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            font-size: 15px;
+            font-weight: 600;
+            color: #2c3e50;
+            text-align: center;
+            cursor: pointer;
+            z-index: 100 !important;
+            /* Her zaman üstte kalsın */
+            pointer-events: auto;
+            transition: var(--transition);
+            text-shadow: 0px 0px 4px rgba(255, 255, 255, 0.9), 0px 0px 8px rgba(255, 255, 255, 0.6);
+            white-space: nowrap;
+            padding: 8px 14px;
+            /* Geniş tıklama alanı eklendi */
+            border-radius: 8px;
+            /* Hover efekti için yuvarlak köşe */
+            user-select: none;
+            /* Tıklarken yazının seçilmesini engeller */
+            -webkit-user-select: none;
+        }
+
+        .emotion-label:hover {
+            transform: translate(-50%, -50%) scale(1.15);
+            color: #000;
+            background-color: rgba(255, 255, 255, 0.4);
+            /* Fare üzerindeyken belirginleşsin */
+        }
+
+        .label-intermediate {
+            font-size: 12px;
+            font-weight: 500;
+            color: #555;
+            background: rgba(255, 255, 255, 0.85);
+            padding: 6px 12px;
+            /* Ara duyguların da tıklama alanı genişletildi */
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            text-shadow: none;
+        }
+
+        .label-intermediate:hover {
+            background: rgba(255, 255, 255, 1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* RIGHT SIDE: INFO PANEL */
+        .words.column {
+            flex: 1;
+            padding: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        #placeholder-container {
+            text-align: center;
+            color: #7f8c8d;
+        }
+
+        #placeholder-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #34495e;
+        }
+
+        #content {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .emotion-name {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-transform: capitalize;
+            border-bottom: 3px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .info-item {
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #34495e;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            color: #555;
+            font-style: italic;
+            font-size: 1.05rem;
+        }
+
+        #explore-container {
+            margin-top: 30px;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #e9ecef;
+        }
+
+        .intensity-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .btn-intensity {
+            background: white;
+            border: 1px solid #ccc;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: var(--transition);
+            color: #333;
+        }
+
+        .btn-intensity:hover {
+            background: #eee;
+            transform: scale(1.1);
+        }
+
+        .btn-intensity:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .opposite-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+        }
+
+        .btn-opposite {
+            padding: 8px 16px;
+            background: #34495e;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .btn-opposite:hover {
+            background: #2c3e50;
+            transform: translateY(-2px);
+        }
+
+        #intermediate-components {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .component-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            background: #eee;
+            font-size: 14px;
+        }
+
+        @media (max-width: 900px) {
+            .main-container {
+                flex-direction: column;
+            }
+
+            .plutchik-zone {
+                border-right: none;
+                border-bottom: 1px solid #eee;
+                padding: 20px;
+            }
+
+            .words.column {
+                padding: 30px 20px;
+            }
+
+            .emotion-label {
+                font-size: 12px;
+                padding: 4px 8px;
+            }
+
+            .label-intermediate {
+                font-size: 10px;
+                padding: 4px 8px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class='main-container'>
+        <div class='plutchik-zone column'>
+            <div class="wheel-wrapper" id="wheel-wrapper">
+                <!-- SVG Start -->
+                <svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 257.47 272.93">
+
+                    <!-- Circles removed per user request -->
+
+
+                    <!-- Main Emotion Petals and their Tip Shapes (Colored identically) -->
+                    <svg class='emotion-container serenity' data-emotion="serenity">
+                        <path class="petal-shape filled-shape serenity-color serenity"
+                            d="M163.77,82.52a159.87,159.87,0,0,0-7.21-27.16,101.53,101.53,0,0,0-23.18,0,158.57,158.57,0,0,0-7.31,27.13A76.74,76.74,0,0,1,163.77,82.52Z"
+                            transform="translate(-16.2 -12.86)" />
+                        <path class="petal-shape filled-shape serenity-color serenity"
+                            d="M156.56,55.36A206.53,206.53,0,0,0,145,28.78a205.36,205.36,0,0,0-11.64,26.54A101.53,101.53,0,0,1,156.56,55.36Z"
+                            transform="translate(-16.2 -12.86)" />
+                    </svg>
+                    <svg class='emotion-container joy' data-emotion="joy">
+                        <path class="petal-shape filled-shape joy-color joy"
+                            d="M126.24,112l0,0v.09a48.41,48.41,0,0,1,17.71-3.7c.3,0,.6,0,.9,0h.9a48.79,48.79,0,0,1,17.7,3.76l0-.08h0c2.23-9.17,1.92-19.43.28-29.54a76.74,76.74,0,0,0-37.7-.07C124.39,92.56,124.05,102.82,126.24,112Z"
+                            transform="translate(-16.2 -12.86)" />
+                    </svg>
+                    <svg class='emotion-container ecstasy' data-emotion="ecstasy">
+                        <path class="petal-shape filled-shape ecstasy-color ecstasy"
+                            d="M126.61,112.1h0l18.53,45,18.71-44.92A48.57,48.57,0,0,0,126.61,112.1Z"
+                            transform="translate(-16.2 -12.86)" />
+                    </svg>
+
+                    <svg class='emotion-container acceptance' data-emotion="acceptance">
+                        <path class="petal-shape filled-shape acceptance-color acceptance"
+                            d="M211.27,117.64a157.66,157.66,0,0,0,14.07-24.37A101.59,101.59,0,0,0,209,76.93a159.12,159.12,0,0,0-24.33,14A76.67,76.67,0,0,1,211.27,117.64Z"
+                            transform="translate(-16.2 -12.86)" />
+                        <path class="petal-shape filled-shape acceptance-color acceptance"
+                            d="M225.34,93.27a205.56,205.56,0,0,0,10.53-26.86A206.31,206.31,0,0,0,209,76.93,101.59,101.59,0,0,1,225.34,93.27Z"
+                            transform="translate(-16.2 -12.86)" />
+                    </svg>
+                    <svg class='emotion-container trust' data-emotion="trust">
+                        <path class="petal-shape filled-shape trust-color trust"
+                            d="M163.84,112.11l0,0-.05,0h0c.93.39,1.85.82,2.76,1.27A48.8,48.8,0,0,1,179,122.06l.64.62.63.65a48.69,48.69,0,0,1,9.87,15.14h0l0-.05,0,0,.06,0c8.05-4.94,15.08-12.45,21-20.78A76.67,76.67,0,0,0,184.71,91C176.34,97,168.79,104,163.84,112.11Z"
+                            transform="translate(-16.2 -12.86)" />
+                    </svg>
+                    <svg class='emotion-container admiration' data-emotion="admiration">
+                        <path class="petal-shape filled-shape admiration-color admiration"
+                            d="M190,138.52h0l-45,18.54,18.71-44.92A48.5,48.5,0,0,1,190,138.52Z"
+                            transform="translate(-16.2 -12.86)" />
+                    </svg>
+
+                    <svg class='emotion-container apprehension' data-emotion="apprehension">
+                        <path class="petal-shape filled-shape apprehension-color apprehension"
+                            d="M247.29,152.65q-.15-3.59-.55-7.12a158.32,158.32,0,0,0-27.13-7.32,76.74,76.74,0,0,1-.07,37.64,159.48,159.48,0,0,0,27.17-7.23q.42-3.66.58-7.31"
+                            transform="translate(-16.2 -12.86)" />
+                        <path class="petal-shape filled-shape apprehension-color apprehension"
+                            d="M246.71,168.62a206.67,206.67,0,0,0,26.44-11.5,206.16,206.16,0,0,0-26.41-11.59A102.47,102.47,0,0,1,246.71,168.62Z"
+                            transform="translate(-16.2 -12.86)" />
+                    </svg>
+                    <svg class='emotion-container fear' data-emotion="fear">
+                        <path class="petal-shape filled-shape fear-color fear"
+                            d="M221.87,154a77.1,77.1,0,0,0-2.26-15.76c-10.15-1.7-20.47-2.07-29.68.14,0,0,0,0,0,0l-.08,0a48.66,48.66,0,0,1,3.69,17.72c0,.3,0,.6,0,.9s0,.59,0,.89a48.8,48.8,0,0,1-3.76,17.71l.08,0v0c9.21,2.24,19.53,1.91,29.68.25a75.85,75.85,0,0,0,2.19-13.49"
+                            transform="translate(-16.2 -12.86)" />
+                    </svg>
+                    <svg class='emotion-container terror' data-emotion="terror">
+                        <path class="petal-shape filled-shape terror-color terror"
+                            d="M190.06,138.56h0l-45,18.57L190,175.8A48.49,48.49,0,0,0,190.06,138.56Z"
+                            transform="translate(-16.2 -12.86)" />
+                    </svg>
+
+                    <svg class='emotion-container distraction' data-emotion="distraction">
+                        <path class="petal-shape filled-shape distraction-color distraction"
+                            d="M184.2,223.15a158.57,158.57,0,0,0,24.34,14.11A101.67,101.67,0,0,0,224.92,221a159,159,0,0,0-14-24.35A76.65,76.65,0,0,1,184.2,223.15Z"
+                            transform="translate(-16.2 -12.86)" />
+                        <path class="petal-shape filled-shape distraction-color distraction"
+                            d="M208.54,237.26a205.08,205.08,0,0,0,26.85,10.58A206.57,206.57,0,0,0,224.92,221,101.67,101.67,0,0,1,208.54,237.26Z"
+                            transform="translate(-16.2 -12.86)" />
+                    </svg>
+                    <svg class='emotion-container surprise' data-emotion="surprise">
+                        <path class="petal-shape filled-shape surprise-color surprise"
+                            d="M189.81,175.73v0l0-.05h0s0,0,0,0h0c-.4.94-.83,1.86-1.28,2.77a49,49,0,0,1-8.63,12.33c-.21.21-.41.43-.63.64l-.64.62a48.77,48.77,0,0,1-15.16,9.85v0l.05,0h0l0,.06c4.92,8.06,12.42,15.1,20.74,21.08a76.65,76.65,0,0,0,26.72-26.51C204.94,188.25,197.9,180.69,189.81,175.73Z"
+                            transform="translate(-16.2 -12.86)" />
+                    </svg>
+                    <svg class='emotion-container amazement' data-emotion="amazement">
+                        <path class="petal-shape filled-shape amazement-color amazement"
+                            d="M163.69,202h0l-18.57-45,44.93,18.68A48.53,48.53,0,0,1,163.69,202Z"
+                            transform="translate(-16.2 -12.86)" />
+                    </svg>
+
+                    <svg class='emotion-container pensiveness' data-emotion="pensiveness">
+                        <!-- Gri lekeler tamamen temizlendi -->
+                        <path class="petal-shape filled-shape pensiveness-color pensiveness"
+                            d="M160.94,243.43c1-3.81,1.86-7.72,2.52-11.66a76.67,76.67,0,0,1-37.65-.15c.67,4.14,1.57,8.25,2.61,12.24"
+                            transform="translate(-16.2 -12.86)" />
+                        <path class="petal-shape filled-shape pensiveness-color pensiveness"
+                            d="M130.05,249.68c.94,3.17,2,6.23,3,9.13a101.91,101.91,0,0,0,23.09.07c1.06-2.95,2.1-6.06,3.07-9.27"
+                            transform="translate(-16.2 -12.86)" />
+                        <path class="petal-shape filled-shape pensiveness-color pensiveness"
+                            d="M133,258.81a205.35,205.35,0,0,0,11.51,26.46,205,205,0,0,0,11.58-26.39A101.91,101.91,0,0,1,133,258.81Z"
+                            transform="translate(-16.2 -12.86)" />
+                    </svg>
+                    <svg class='emotion-container sadness' data-emotion="sadness">
+                        <path class="petal-shape filled-shape sadness-color sadness"
+                            d="M163.31,202.05h0V202h0l0,0h0c-.94.39-1.89.73-2.85,1.05a48.87,48.87,0,0,1-14.82,2.62l-.9,0-.9,0a48.74,48.74,0,0,1-17.69-3.76V202h0l0,.06c-2.22,9.18-1.9,19.46-.24,29.57a76.67,76.67,0,0,0,37.65.15C165.16,221.61,165.52,211.28,163.31,202.05Z"
+                            transform="translate(-16.2 -12.86)" />
+                    </svg>
+                    <svg class='emotion-container grief' data-emotion="grief">
+                        <path class="petal-shape filled-shape grief-color grief"
+                            d="M163.58,202.07h0l-18.53-45L126.34,202A48.53,48.53,0,0,0,163.58,202.07Z"
+                            transform="translate(-16.2 -12.86)" />
+                    </svg>
+
+                    <svg class='emotion-container boredom' data-emotion="boredom">
+                        <path class="petal-shape filled-shape boredom-color boredom"
+                            d="M79,196.63A159,159,0,0,0,64.9,221a101.7,101.7,0,0,0,16.4,16.39,158.89,158.89,0,0,0,24.33-14.06A76.8,76.8,0,0,1,79,196.63Z"
+                            transform="translate(-16.2 -12.86)" />
+                        <path class="petal-shape filled-shape boredom-color boredom"
+                            d="M64.9,221a206,206,0,0,0-10.58,27,205.29,205.29,0,0,0,27-10.59A101.7,101.7,0,0,1,64.9,221Z"
+                            transform="translate(-16.2 -12.86)" />
+                    </svg>
+                    <svg class='emotion-container disgust' data-emotion="disgust">
+                        <path class="petal-shape filled-shape disgust-color disgust"
+                            d="M126.36,202.24l0,0,.07,0a49,49,0,0,1-15.16-9.89l-.64-.62L110,191a48.75,48.75,0,0,1-9.88-15.16l0,.07v0c-8,4.92-15.07,12.41-21,20.73a76.8,76.8,0,0,0,26.66,26.66C114,217.32,121.44,210.29,126.36,202.24Z"
+                            transform="translate(-16.2 -12.86)" />
+                    </svg>
+                    <svg class='emotion-container loathing' data-emotion="loathing">
+                        <path class="petal-shape filled-shape loathing-color loathing"
+                            d="M100.14,175.65h0l45-18.54L126.43,202A48.52,48.52,0,0,1,100.14,175.65Z"
+                            transform="translate(-16.2 -12.86)" />
+                    </svg>
+
+                    <svg class='emotion-container annoyance' data-emotion="annoyance">
+                        <path class="petal-shape filled-shape annoyance-color annoyance"
+                            d="M42.7,160.87q.13,4,.59,7.89A157.9,157.9,0,0,0,70.44,176a76.69,76.69,0,0,1,0-37.69,159.49,159.49,0,0,0-27.15,7.25q-.51,4.45-.63,8.9"
+                            transform="translate(-16.2 -12.86)" />
+                        <path class="petal-shape filled-shape annoyance-color annoyance"
+                            d="M43.29,145.57a206.78,206.78,0,0,0-26.56,11.59,204.25,204.25,0,0,0,26.56,11.6A101.61,101.61,0,0,1,43.29,145.57Z"
+                            transform="translate(-16.2 -12.86)" />
+                    </svg>
+                    <svg class='emotion-container anger' data-emotion="anger">
+                        <path class="petal-shape filled-shape anger-color anger"
+                            d="M68.18,160.87A76.88,76.88,0,0,0,70.44,176c10.1,1.66,20.37,2,29.54-.22l0,0,.09,0a48.81,48.81,0,0,1-3.73-17.71c0-.3,0-.6,0-.89s0-.61,0-.9a48.87,48.87,0,0,1,3.73-17.72l-.08,0v0c-9.17-2.21-19.44-1.88-29.54-.22a76.26,76.26,0,0,0-2.31,16.38"
+                            transform="translate(-16.2 -12.86)" />
+                    </svg>
+                    <svg class='emotion-container rage' data-emotion="rage">
+                        <path class="petal-shape filled-shape rage-color rage"
+                            d="M100.12,175.6h0l45-18.57-44.93-18.67A48.53,48.53,0,0,0,100.12,175.6Z"
+                            transform="translate(-16.2 -12.86)" />
+                    </svg>
+
+                    <svg class='emotion-container interest' data-emotion="interest">
+                        <path class="petal-shape filled-shape interest-color interest"
+                            d="M105.51,91a159.45,159.45,0,0,0-24.35-14A102,102,0,0,0,64.85,93.26a159.28,159.28,0,0,0,14,24.34A76.74,76.74,0,0,1,105.51,91Z"
+                            transform="translate(-16.2 -12.86)" />
+                        <path class="petal-shape filled-shape interest-color interest"
+                            d="M81.16,76.93A206.09,206.09,0,0,0,54.32,66.41,205.78,205.78,0,0,0,64.85,93.26,102,102,0,0,1,81.16,76.93Z"
+                            transform="translate(-16.2 -12.86)" />
+                    </svg>
+                    <svg class='emotion-container anticipation' data-emotion="anticipation">
+                        <path class="petal-shape filled-shape anticipation-color anticipation"
+                            d="M100,138.45s0,0,0,0l0,.07A48.7,48.7,0,0,1,110,123.33c.21-.22.41-.44.62-.65l.65-.62a48.6,48.6,0,0,1,15.16-9.89l-.07,0,0,0C121.42,104,113.88,97,105.51,91A76.74,76.74,0,0,0,78.89,117.6C84.88,126,91.93,133.51,100,138.45Z"
+                            transform="translate(-16.2 -12.86)" />
+                    </svg>
+                    <svg class='emotion-container vigilance' data-emotion="vigilance">
+                        <path class="petal-shape filled-shape vigilance-color vigilance"
+                            d="M126.5,112.15h0l18.56,45-44.92-18.67A48.44,48.44,0,0,1,126.5,112.15Z"
+                            transform="translate(-16.2 -12.86)" />
+                    </svg>
+                </svg>
+                <!-- SVG End -->
+
+                <!-- Absolute Positioned Turkish Labels -->
+
+                <!-- JOY Axis -->
+                <div class="emotion-label" data-emotion="ecstasy" style="top: 40%; left: 50%;">Coşkunluk</div>
+                <div class="emotion-label" data-emotion="joy" style="top: 24%; left: 50%;">Sevinç</div>
+                <div class="emotion-label" data-emotion="serenity" style="top: 8%; left: 50%;">Sükunet</div>
+
+                <!-- TRUST Axis -->
+                <div class="emotion-label" data-emotion="admiration" style="top: 43%; left: 57%;">Hayranlık</div>
+                <div class="emotion-label" data-emotion="trust" style="top: 32%; left: 68%;">Güven</div>
+                <div class="emotion-label" data-emotion="acceptance" style="top: 20%; left: 80%;">Kabulleniş</div>
+
+                <!-- FEAR Axis -->
+                <div class="emotion-label" data-emotion="terror" style="top: 50%; left: 60%;">Dehşet</div>
+                <div class="emotion-label" data-emotion="fear" style="top: 50%; left: 76%;">Korku</div>
+                <div class="emotion-label" data-emotion="apprehension" style="top: 50%; left: 92%;">Kaygı</div>
+
+                <!-- SURPRISE Axis -->
+                <div class="emotion-label" data-emotion="amazement" style="top: 57%; left: 57%;">Hayret</div>
+                <div class="emotion-label" data-emotion="surprise" style="top: 68%; left: 68%;">Şaşkınlık</div>
+                <div class="emotion-label" data-emotion="distraction" style="top: 80%; left: 80%;">Dikkat Dağılması
+                </div>
+
+                <!-- SADNESS Axis -->
+                <div class="emotion-label" data-emotion="grief" style="top: 60%; left: 50%;">Keder</div>
+                <div class="emotion-label" data-emotion="sadness" style="top: 76%; left: 50%;">Üzüntü</div>
+                <div class="emotion-label" data-emotion="pensiveness" style="top: 92%; left: 50%;">Dalgınlık</div>
+
+                <!-- DISGUST Axis -->
+                <div class="emotion-label" data-emotion="loathing" style="top: 57%; left: 43%;">İğrenme</div>
+                <div class="emotion-label" data-emotion="disgust" style="top: 68%; left: 32%;">Tiksinme</div>
+                <div class="emotion-label" data-emotion="boredom" style="top: 80%; left: 20%;">Sıkıntı</div>
+
+                <!-- ANGER Axis -->
+                <div class="emotion-label" data-emotion="rage" style="top: 50%; left: 40%;">Hiddet</div>
+                <div class="emotion-label" data-emotion="anger" style="top: 50%; left: 24%;">Öfke</div>
+                <div class="emotion-label" data-emotion="annoyance" style="top: 50%; left: 8%;">Rahatsızlık</div>
+
+                <!-- ANTICIPATION Axis -->
+                <div class="emotion-label" data-emotion="vigilance" style="top: 43%; left: 43%;">İhtiyat</div>
+                <div class="emotion-label" data-emotion="anticipation" style="top: 32%; left: 32%;">Beklenti</div>
+                <div class="emotion-label" data-emotion="interest" style="top: 20%; left: 20%;">İlgi</div>
+
+                <!-- Intermediate Emotions -->
+                <div class="emotion-label label-intermediate" data-emotion="love" style="top: 18%; left: 63%;">Aşk</div>
+                <div class="emotion-label label-intermediate" data-emotion="submission" style="top: 37%; left: 82%;">
+                    Teslimiyet</div>
+                <div class="emotion-label label-intermediate" data-emotion="awe" style="top: 63%; left: 82%;">Haşmet
+                </div>
+                <div class="emotion-label label-intermediate" data-emotion="disapproval" style="top: 82%; left: 63%;">
+                    Kınama</div>
+                <div class="emotion-label label-intermediate" data-emotion="remorse" style="top: 82%; left: 37%;">
+                    Pişmanlık</div>
+                <div class="emotion-label label-intermediate" data-emotion="contempt" style="top: 63%; left: 18%;">
+                    Küçümseme</div>
+                <div class="emotion-label label-intermediate" data-emotion="aggressiveness"
+                    style="top: 37%; left: 18%;">Agresiflik</div>
+                <div class="emotion-label label-intermediate" data-emotion="optimism" style="top: 18%; left: 37%;">
+                    Optimizm</div>
+
+            </div>
+        </div>
+
+        <div class='words column'>
+            <div id='placeholder-container'>
+                <div id='placeholder-title'>Keşfetmek için bir duyguya tıklayın</div>
+                <p id='placeholder-text'>Duygularınızı daha iyi anlamak için bu interaktif Plutchik Modelini kullanın.
+                </p>
+            </div>
+
+            <div id='content'>
+                <div id='emotion-title' class='emotion-name'>Sevinç</div>
+
+                <div id='emotion-description'>
+                    <div class="info-item">
+                        <span class="info-label">Benzer kelimeler:</span>
+                        <span id='similar-words' class="info-value">Mutluluk, Neşe, Keyif</span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="info-label">Tipik hisler:</span>
+                        <span id='sensations' class="info-value">Hafiflik, sıcaklık, enerji</span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="info-label"><span class='emotion-name-text'>Sevinç</span> size ne söylüyor?</span>
+                        <span id='message' class="info-value">Bu durum senin için faydalı.</span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="info-label"><span class='emotion-name-text'>Sevinç</span> size nasıl yardımcı
+                            olur?</span>
+                        <span id='purpose' class="info-value">Bağ kurmak ve tekrarını istemek.</span>
+                    </div>
+                </div>
+
+                <div id='explore-container'>
+
+                    <!-- Base Emotion Controls -->
+                    <div id='base-emotion-explore-container'>
+                        <span style="font-weight: 600; color: #34495e; display: block; margin-bottom: 10px;">Yoğunluğu
+                            Değiştir</span>
+                        <div class="intensity-controls">
+                            <button class="btn-intensity" id="btn-decrease">-</button>
+                            <span id='intensity-text'>Seviye: <strong id='intensity'>2</strong>/3</span>
+                            <button class="btn-intensity" id="btn-increase">+</button>
+                        </div>
+
+                        <div class="opposite-box">
+                            <span style="font-weight: 600; color: #34495e;">Zıddını Keşfet:</span>
+                            <button id='opposite-button' class="btn-opposite">Üzüntü</button>
+                        </div>
+                    </div>
+
+                    <!-- Intermediate Emotion Controls -->
+                    <div id='intermediate-emotion-explore-container' style="display: none;">
+                        <span
+                            style="font-weight: 600; color: #34495e; display: block; margin-bottom: 10px;">Bileşenleri:</span>
+                        <div id="intermediate-components">
+                            <span id='combo-emotion-0' class="component-badge">Beklenti</span>
+                            <span>+</span>
+                            <span id='combo-emotion-1' class="component-badge">Sevinç</span>
+                        </div>
+                        <div class="opposite-box">
+                            <span style="font-weight: 600; color: #34495e;">Zıddını Keşfet:</span>
+                            <button id='opposite-button-inter' class="btn-opposite">Onaylamama</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Türkçe Duygu Veritabanı
+        const emotionsData = {
+            // SEVİNÇ AİLESİ (JOY)
+            "serenity": { name: "Sükunet", family: "joy", intensity: 1, similar: "Sakinlik, Rahatlık, Barış", sensations: "Derin nefes, kaslarda gevşeme", message: "Şu an her şey yolunda ve güvendesin.", purpose: "Dinlenmek, anın tadını çıkarmak ve yenilenmek." },
+            "joy": { name: "Sevinç", family: "joy", intensity: 2, similar: "Mutluluk, Neşe, Keyif", sensations: "Hafiflik, sıcaklık, kalp atışında hafif artış", message: "Bu durum senin için faydalı ve iyi.", purpose: "Bağ kurmak ve bu olumlu durumu tekrarlamak." },
+            "ecstasy": { name: "Coşkunluk", family: "joy", intensity: 3, similar: "Büyük Mutluluk, Heyecan, Kendinden Geçme", sensations: "Enerji patlaması, titreme, yoğun sıcaklık", message: "Hayatında olağanüstü iyi bir şey oluyor.", purpose: "Bu harika deneyimi tam anlamıyla kutlamak ve içselleştirmek." },
+
+            // GÜVEN AİLESİ (TRUST)
+            "acceptance": { name: "Kabulleniş", family: "trust", intensity: 1, similar: "Hoşgörü, Açıklık, Rıza", sensations: "Gevşeme, direnmeyi bırakma", message: "Durumu olduğu gibi görebilir ve direnmeyi bırakabilirsin.", purpose: "Yeni bilgilere, insanlara ve durumlara yer açmak." },
+            "trust": { name: "Güven", family: "trust", intensity: 2, similar: "İnanç, Emniyet, Teslimiyet", sensations: "Göğüste rahatlama, sıcaklık, omuzlarda düşme", message: "Karşındaki kişi veya duruma güvenle dayanabilirsin.", purpose: "Bağlantı kurmak, işbirliği yapmak ve yardım kabul etmek." },
+            "admiration": { name: "Hayranlık", family: "trust", intensity: 3, similar: "Derin Saygı, Takdir, Büyülenme", sensations: "Odaklanma, kalpte büyüme hissi", message: "Bu kişi veya durum inanılmaz derecede değerli.", purpose: "Örnek almak, ondan öğrenmek ve ilham almak." },
+
+            // KORKU AİLESİ (FEAR)
+            "apprehension": { name: "Kaygı", family: "fear", intensity: 1, similar: "Endişe, Tedirginlik, Şüphe", sensations: "Midede hafif kasılma, tetikte olma, huzursuzluk", message: "Potansiyel bir tehlike olabilir, dikkatli ol.", purpose: "Hazırlıklı olmak ve riskleri önceden taramak." },
+            "fear": { name: "Korku", family: "fear", intensity: 2, similar: "Korkma, Ürkme, Çekinme", sensations: "Kalp atışında hızlanma, nefes daralması, terleme", message: "Burada gerçek bir tehdit var ve korunman gerekiyor.", purpose: "Tehlikeden kaçmak, saklanmak veya savaşmak için enerji toplamak." },
+            "terror": { name: "Dehşet", family: "fear", intensity: 3, similar: "Panik, Fobi, Şok", sensations: "Donakalma, titreme, nefes kesilmesi, göz bebeklerinde büyüme", message: "Hayatta kalman ciddi şekilde tehlikede!", purpose: "Acil ve ani bir hayatta kalma tepkisi (savaş/kaç/don) vermek." },
+
+            // ŞAŞKINLIK AİLESİ (SURPRISE)
+            "distraction": { name: "Dikkat Dağılması", family: "surprise", intensity: 1, similar: "Kafa Karışıklığı, Odak Kaybı", sensations: "Huzursuzluk, gözlerin gezinmesi", message: "Yeni ve belirsiz bir uyaran var, ne olduğuna bakmalısın.", purpose: "Çevredeki yeni veya değişen şeyleri fark etmek." },
+            "surprise": { name: "Şaşkınlık", family: "surprise", intensity: 2, similar: "Beklenmedik Durum, Afallama", sensations: "Gözlerin büyümesi, nefes tutma, kaşların kalkması", message: "Beklenmeyen bir şey oldu, hemen dikkat kesil.", purpose: "Yeni duruma uyum sağlamak için mevcut eylemi duraklatmak." },
+            "amazement": { name: "Hayret", family: "surprise", intensity: 3, similar: "Şaşkına Dönme, Şok", sensations: "Ağzın açık kalması, geçici donma", message: "Bu tamamen olağanüstü, kuralları yıkan bir durum.", purpose: "Tamamen yeni bir gerçeği işlemek ve ona uyum sağlamak." },
+
+            // ÜZÜNTÜ AİLESİ (SADNESS)
+            "pensiveness": { name: "Dalgınlık", family: "sadness", intensity: 1, similar: "İçe Kapanma, Melankoli, Düşüncelilik", sensations: "Düşük enerji, ağırlaşma, içe dönük bakış", message: "Bir şeyleri gözden geçirmen ve üzerinde düşünmen gerekiyor.", purpose: "İçgörü kazanmak, durumu sindirmek ve dinlenmek." },
+            "sadness": { name: "Üzüntü", family: "sadness", intensity: 2, similar: "Keder, Hüzün, Acı", sensations: "Boğazda düğümlenme, gözyaşı, göğüste ağırlık", message: "Senin için değerli bir şeyi kaybettin.", purpose: "Yardım/şefkat istemek ve iyileşmek için kendine zaman tanımak." },
+            "grief": { name: "Keder", family: "sadness", intensity: 3, similar: "Derin Acı, Yıkım, Yas", sensations: "Fiziksel acı hissi, bitkinlik, hıçkırık", message: "Çok büyük ve onarılamaz bir kaybın var.", purpose: "Bu büyük kaybı sindirmek ve başkalarından yoğun destek almak." },
+
+            // İĞRENME AİLESİ (DISGUST)
+            "boredom": { name: "Sıkıntı", family: "disgust", intensity: 1, similar: "İlgisizlik, Bıkkınlık, Yorgunluk", sensations: "Uyuşukluk, esneme, dikkati toplayamama", message: "Bu durum sana hiçbir fayda veya uyarı sağlamıyor.", purpose: "Farklı, yeni ve daha tatmin edici bir şey aramaya itmek." },
+            "disgust": { name: "Tiksinme", family: "disgust", intensity: 2, similar: "İğrenme, İtme", sensations: "Mide bulantısı, yüz buruşturma, geri çekilme", message: "Bu şey zehirli, sağlıksız veya zararlı; uzak dur.", purpose: "Zararlı şeyleri (fiziksel yiyecek veya toksik sosyal durum) reddetmek." },
+            "loathing": { name: "İğrenme", family: "disgust", intensity: 3, similar: "Nefret, Kin, Husumet", sensations: "Öğürme hissi, şiddetli itici güç, bedensel kasılma", message: "Bu senin için kesinlikle tahammül edilemez ve iğrenç.", purpose: "Seni tamamen zehirleyen şeyden kesin olarak kurtulmak." },
+
+            // ÖFKE AİLESİ (ANGER)
+            "annoyance": { name: "Rahatsızlık", family: "anger", intensity: 1, similar: "Bıkkınlık, Sinir Bozukluğu", sensations: "Kaslarda hafif gerginlik, dudak büzme, diş sıkma", message: "Sınırların hafifçe ihlal ediliyor veya bir engel var.", purpose: "Engeli fark edip durumu düzeltmek için adım atmak." },
+            "anger": { name: "Öfke", family: "anger", intensity: 2, similar: "Sinir, Kızgınlık, Hiddetlenme", sensations: "Sıcaklık, yüzde kızarma, kalp atışında hızlanma, çene sıkma", message: "Adaletsizlik var veya sınırların açıkça aşıldı.", purpose: "Sınırlarını korumak, adaleti sağlamak ve harekete geçmek." },
+            "rage": { name: "Hiddet", family: "anger", intensity: 3, similar: "Öfke Patlaması, Çılgınlık", sensations: "Titreme, kontrol kaybı hissi, görme daralması", message: "Durum tahammül edilemez, acil ve güçlü bir yıkım gücü gerekiyor.", purpose: "Büyük bir tehdidi veya aşılmaz bir engeli zorla ortadan kaldırmak." },
+
+            // BEKLENTİ AİLESİ (ANTICIPATION)
+            "interest": { name: "İlgi", family: "anticipation", intensity: 1, similar: "Merak, Dikkat", sensations: "Hafifçe öne eğilme, bakışların netleşmesi", message: "Burada keşfedilecek faydalı veya önemli bir şey olabilir.", purpose: "Yeni bilgiler edinmek, öğrenmek ve çevreyi taramak." },
+            "anticipation": { name: "Beklenti", family: "anticipation", intensity: 2, similar: "Umut, Planlama, Heyecanlı Bekleyiş", sensations: "Hafif heyecan, zihinsel uyarılma, yerinde duramama", message: "Gelecekte önemli bir şey olacak, buna odaklan.", purpose: "Gelecekteki o olaya veya ödüle hazırlanmak." },
+            "vigilance": { name: "İhtiyat", family: "anticipation", intensity: 3, similar: "Aşırı Dikkat, Pür Dikkat, Teyakkuz", sensations: "Tüm kaslarda gerginlik, keskin duyular, uykusuzluk", message: "Çok kritik bir şey yaklaşıyor, tüm dikkatini ver.", purpose: "Gelecek duruma veya tehlikeye karşı mükemmel bir şekilde hazır olmak." },
+
+            // ARA DUYGULAR (INTERMEDIATE / DYADS)
+            "optimism": { name: "Optimizm", family: "intermediate", similar: "Umut, İnanç, İyimserlik", message: "Gelecek güzel şeyler getirecek.", purpose: "Hedeflere ulaşmak için motive olmak ve çalışmak.", components: ["Beklenti", "Sevinç"], opposite: "disapproval" },
+            "love": { name: "Aşk", family: "intermediate", similar: "Sevgi, Şefkat, Derin Bağ", message: "Bu kişiye/duruma değer veriyor ve güvende hissediyorsun.", purpose: "Derin sosyal bağlar kurmak, yardımlaşmak ve korumak.", components: ["Sevinç", "Güven"], opposite: "remorse" },
+            "submission": { name: "Teslimiyet", family: "intermediate", similar: "İtaat, Boyun Eğme", message: "Otoriteye veya daha güçlü olana uyum sağlamalısın.", purpose: "Grupta kalmak ve daha güçlü biriyle çatışmadan kaçınmak.", components: ["Güven", "Korku"], opposite: "contempt" },
+            "awe": { name: "Haşmet", family: "intermediate", similar: "Huşu, Saygılı Korku, Büyülenme", message: "Senden çok daha büyük, güçlü ve açıklanamaz bir şeyin karşısındasın.", purpose: "Dünyadaki yerini anlamak ve alçakgönüllü olmak.", components: ["Korku", "Şaşkınlık"], opposite: "aggressiveness" },
+            "disapproval": { name: "Kınama", family: "intermediate", similar: "Onaylamama, Yadırgama", message: "İşler beklediğin veya olması gerektiği gibi gitmedi.", purpose: "Hataları, sapmaları veya istenmeyen durumları işaret etmek.", components: ["Şaşkınlık", "Üzüntü"], opposite: "optimism" },
+            "remorse": { name: "Pişmanlık", family: "intermediate", similar: "Vicdan Azabı, Suçluluk", message: "Yaptığın bir şey kendi değerlerine veya sosyal kurallara aykırıydı.", purpose: "Hatalarından ders çıkarmak ve ilişkileri telafi etmek.", components: ["Üzüntü", "Tiksinme"], opposite: "love" },
+            "contempt": { name: "Küçümseme", family: "intermediate", similar: "Aşağılama, Hor Görme", message: "Bu kişi/durum değersiz, düşük statülü ve saygıyı hak etmiyor.", purpose: "Toplumsal hiyerarşiyi belirlemek veya toksik olanı uzaklaştırmak.", components: ["Tiksinme", "Öfke"], opposite: "submission" },
+            "aggressiveness": { name: "Agresiflik", family: "intermediate", similar: "Saldırganlık, Hücum Etme", message: "İstediğini almak veya korumak için proaktif olarak güç kullanmalısın.", purpose: "Rakipleri alt etmek, kaynakları korumak ve kontrol sağlamak.", components: ["Öfke", "Beklenti"], opposite: "awe" }
+        };
+
+        const families = {
+            "joy": ["serenity", "joy", "ecstasy"],
+            "trust": ["acceptance", "trust", "admiration"],
+            "fear": ["apprehension", "fear", "terror"],
+            "surprise": ["distraction", "surprise", "amazement"],
+            "sadness": ["pensiveness", "sadness", "grief"],
+            "disgust": ["boredom", "disgust", "loathing"],
+            "anger": ["annoyance", "anger", "rage"],
+            "anticipation": ["interest", "anticipation", "vigilance"]
+        };
+
+        const opposites = {
+            "joy": "sadness", "sadness": "joy",
+            "trust": "disgust", "disgust": "trust",
+            "fear": "anger", "anger": "fear",
+            "surprise": "anticipation", "anticipation": "surprise"
+        };
+
+        // DOM Elements
+        const placeholderContainer = document.getElementById('placeholder-container');
+        const contentContainer = document.getElementById('content');
+        const emotionNameEls = document.querySelectorAll('.emotion-name');
+        const emotionNameTextEls = document.querySelectorAll('.emotion-name-text');
+        const similarWordsEl = document.getElementById('similar-words');
+        const sensationsEl = document.getElementById('sensations');
+        const messageEl = document.getElementById('message');
+        const purposeEl = document.getElementById('purpose');
+
+        const baseExplore = document.getElementById('base-emotion-explore-container');
+        const interExplore = document.getElementById('intermediate-emotion-explore-container');
+        const intensityEl = document.getElementById('intensity');
+        const btnIncrease = document.getElementById('btn-increase');
+        const btnDecrease = document.getElementById('btn-decrease');
+        const btnOpposite = document.getElementById('opposite-button');
+        const btnOppositeInter = document.getElementById('opposite-button-inter');
+        const combo0 = document.getElementById('combo-emotion-0');
+        const combo1 = document.getElementById('combo-emotion-1');
+
+        function getBaseColor(family) {
+            const colors = {
+                joy: "#FFD54F", trust: "#AED581", fear: "#81C784", surprise: "#4FC3F7",
+                sadness: "#7986CB", disgust: "#BA68C8", anger: "#E57373", anticipation: "#FFB74D",
+                intermediate: "#7f8c8d"
+            };
+            return colors[family];
+        }
+
+        function updateUI(emotionKey) {
+            const data = emotionsData[emotionKey];
+            if (!data) return;
+
+            // Show Content, Hide Placeholder
+            placeholderContainer.style.display = 'none';
+            contentContainer.style.display = 'block';
+
+            // Text Updates
+            emotionNameEls.forEach(el => {
+                el.textContent = data.name;
+                el.style.color = getBaseColor(data.family);
+                if (el.tagName === 'DIV') el.style.borderBottomColor = getBaseColor(data.family);
+            });
+            emotionNameTextEls.forEach(el => el.textContent = data.name);
+
+            similarWordsEl.textContent = data.similar;
+            messageEl.textContent = data.message;
+            purposeEl.textContent = data.purpose;
+
+            if (data.family === 'intermediate') {
+                // It's an intermediate emotion
+                document.getElementById('sensations').parentElement.style.display = 'none';
+                baseExplore.style.display = 'none';
+                interExplore.style.display = 'block';
+
+                combo0.textContent = data.components[0];
+                combo1.textContent = data.components[1];
+                btnOppositeInter.textContent = emotionsData[data.opposite].name;
+                btnOppositeInter.onclick = () => updateUI(data.opposite);
+            } else {
+                // It's a base emotion
+                document.getElementById('sensations').parentElement.style.display = 'block';
+                sensationsEl.textContent = data.sensations;
+
+                baseExplore.style.display = 'block';
+                interExplore.style.display = 'none';
+
+                intensityEl.textContent = data.intensity;
+
+                // Update Intensity Buttons
+                const familyList = families[data.family];
+                const currentIndex = familyList.indexOf(emotionKey);
+
+                btnDecrease.disabled = currentIndex === 0;
+                btnIncrease.disabled = currentIndex === 2;
+
+                btnDecrease.onclick = () => { if (currentIndex > 0) updateUI(familyList[currentIndex - 1]); };
+                btnIncrease.onclick = () => { if (currentIndex < 2) updateUI(familyList[currentIndex + 1]); };
+
+                // Update Opposite Button
+                const oppFamily = opposites[data.family];
+                const oppEmotionKey = families[oppFamily][currentIndex]; // Match intensity
+                btnOpposite.textContent = emotionsData[oppEmotionKey].name;
+                btnOpposite.onclick = () => updateUI(oppEmotionKey);
+            }
+        }
+
+        // METİNLERE TIKLAMA VE HOVER - Güçlendirildi
+        document.querySelectorAll('.emotion-label').forEach(label => {
+            label.addEventListener('mouseenter', (e) => {
+                const emotion = e.currentTarget.dataset.emotion; // currentTarget kullanıldı
+                const svgs = document.querySelectorAll(`.emotion-container.${emotion} .petal-shape, .emotion-container .${emotion}`);
+                svgs.forEach(s => s.style.filter = 'brightness(0.85)');
+            });
+
+            label.addEventListener('mouseleave', (e) => {
+                const emotion = e.currentTarget.dataset.emotion;
+                const svgs = document.querySelectorAll(`.emotion-container.${emotion} .petal-shape, .emotion-container .${emotion}`);
+                svgs.forEach(s => s.style.filter = 'none');
+            });
+
+            label.addEventListener('click', (e) => {
+                e.stopPropagation(); // Alt katmandaki tıklamaları engeller
+                updateUI(e.currentTarget.dataset.emotion);
+            });
+        });
+
+        // YAPRAKLARA TIKLAMA
+        document.querySelectorAll('.petal-shape').forEach(path => {
+            path.addEventListener('click', (e) => {
+                const parent = e.currentTarget.closest('.emotion-container');
+                if (parent) {
+                    updateUI(parent.dataset.emotion);
+                } else {
+                    const classList = Array.from(e.currentTarget.classList);
+                    const emotionClass = classList.find(c => emotionsData[c]);
+                    if (emotionClass) updateUI(emotionClass);
+                }
+            });
+        });
+
+        // Klavye olaylarını ana sayfaya ilet (Slayt geçişi için)
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                window.parent.postMessage('nextSlide', '*');
+            } else if (e.key === 'ArrowLeft') {
+                window.parent.postMessage('prevSlide', '*');
+            }
+        });
+
+    </script>
+</body>
+
+</html>
+```
